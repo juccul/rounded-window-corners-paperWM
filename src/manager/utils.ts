@@ -1,12 +1,10 @@
 /** @file Provides various utility functions used withing signal handling code. */
 
-import type Clutter from 'gi://Clutter';
+import type St from 'gi://St';
 import type {RoundedCornersEffect} from '../effect/rounded_corners_effect.js';
 import type {RoundedWindowActor} from '../utils/types.js';
 
-import Gio from 'gi://Gio';
 import Meta from 'gi://Meta';
-import St from 'gi://St';
 
 import {boxShadowCss} from '../utils/box_shadow.js';
 import {
@@ -17,45 +15,6 @@ import {
 import {readFile} from '../utils/file.js';
 import {logDebug} from '../utils/log.js';
 import {getPref} from '../utils/settings.js';
-
-// Cache mutter settings to avoid creating a new Gio.Settings object on every
-// call to windowScaleFactor (which is called per-frame during overview animations).
-let mutterSettings: Gio.Settings | null = null;
-let fractionalScalingEnabled: boolean | null = null;
-
-/**
- * Check whether fractional scaling is enabled in the GNOME mutter settings.
- * The result is cached and invalidated when the `experimental-features` setting
- * changes.
- *
- * @returns Whether fractional scaling is currently enabled.
- */
-function isFractionalScalingEnabled() {
-    if (mutterSettings === null) {
-        mutterSettings = Gio.Settings.new('org.gnome.mutter');
-        mutterSettings.connect('changed::experimental-features', () => {
-            fractionalScalingEnabled = null;
-        });
-    }
-    if (fractionalScalingEnabled === null) {
-        const features = mutterSettings.get_strv('experimental-features');
-
-        fractionalScalingEnabled = features.includes(
-            'scale-monitor-framebuffer',
-        );
-    }
-    return fractionalScalingEnabled;
-}
-
-/**
- * Clear the cached mutter settings and fractional scaling state.
- * Should be called when the extension is disabled to release the
- * {@link Gio.Settings} object and its D-Bus signal subscription.
- */
-export function clearMutterSettingsCache() {
-    mutterSettings = null;
-    fractionalScalingEnabled = null;
-}
 
 /**
  * Get the actor that rounded corners should be applied to.
@@ -114,23 +73,6 @@ export function getRoundedCornersEffect(actor: RoundedWindowActor) {
         : (actor.get_effect(name) as RoundedCornersEffectType);
 }
 
-/**
- * Get the scaling factor of a window.
- *
- * @param win - The window to get the scaling factor for.
- * @returns The scaling factor of the window.
- */
-export function windowScaleFactor(win: Meta.Window) {
-    // When fractional scaling is enabled, always return 1.
-    // Use cached settings to avoid creating a new Gio.Settings object per call.
-    if (isFractionalScalingEnabled()) {
-        return 1;
-    }
-
-    const monitorIndex = win.get_monitor();
-    return global.display.get_monitor_scale(monitorIndex);
-}
-
 /** Compute outer bounds for rounded corners of a window
  *
  * @param actor - The window actor to compute the bounds for.
@@ -186,26 +128,19 @@ export function computeWindowContentsOffset(
 /**
  * Compute the offset of the shadow actor for a window.
  *
- * @param actor - The window actor to compute the offset for.
  * @param [offsetX, offsetY, offsetWidth, offsetHeight] - The content offsets of the window actor.
  */
-export function computeShadowActorOffset(
-    actor: RoundedWindowActor,
-    [offsetX, offsetY, offsetWidth, offsetHeight]: [
-        number,
-        number,
-        number,
-        number,
-    ],
-) {
-    const win = actor.metaWindow;
-    const shadowPadding = SHADOW_PADDING * windowScaleFactor(win);
-
+export function computeShadowActorOffset([
+    offsetX,
+    offsetY,
+    offsetWidth,
+    offsetHeight,
+]: [number, number, number, number]) {
     return [
-        offsetX - shadowPadding,
-        offsetY - shadowPadding,
-        2 * shadowPadding + offsetWidth,
-        2 * shadowPadding + offsetHeight,
+        offsetX - SHADOW_PADDING,
+        offsetY - SHADOW_PADDING,
+        2 * SHADOW_PADDING + offsetWidth,
+        2 * SHADOW_PADDING + offsetHeight,
     ];
 }
 
@@ -234,17 +169,7 @@ export function updateShadowActorStyle(
         adjustedBorderRadius *= 1.0 + globalCfg.smoothing;
     }
 
-    // If there are two monitors with different scale factors, the scale of
-    // the window may be different from the scale that has to be applied in
-    // the css, so we have to adjust the scale factor accordingly.
-
-    const originalScale = St.ThemeContext.get_for_stage(
-        global.stage as Clutter.Stage,
-    ).scaleFactor;
-
-    const scale = windowScaleFactor(win) / originalScale;
-
-    actor.style = `padding: ${SHADOW_PADDING * scale}px;`;
+    actor.style = `padding: ${SHADOW_PADDING}px;`;
 
     const child = actor.firstChild as St.Bin;
 
@@ -257,12 +182,12 @@ export function updateShadowActorStyle(
     const newChildStyle = hideShadowForMaximizedFullscreen
         ? 'opacity: 0;'
         : `background: white;
-               border-radius: ${adjustedBorderRadius * scale}px;
-               ${boxShadowCss(shadow, scale)};
-               margin: ${top * scale}px
-                       ${right * scale}px
-                       ${bottom * scale}px
-                       ${left * scale}px;`;
+               border-radius: ${adjustedBorderRadius}px;
+               ${boxShadowCss(shadow)};
+               margin: ${top}px
+                       ${right}px
+                       ${bottom}px
+                       ${left}px;`;
 
     // Only update style and queue a redraw when the style actually changed.
     if (child.style !== newChildStyle) {

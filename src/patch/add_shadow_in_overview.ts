@@ -11,7 +11,7 @@ import Graphene from 'gi://Graphene';
 import {overview} from 'resource:///org/gnome/shell/ui/main.js';
 
 import {LinearFilterEffect} from '../effect/linear_filter_effect.js';
-import {shouldEnableEffect, windowScaleFactor} from '../manager/utils.js';
+import {shouldEnableEffect} from '../manager/utils.js';
 import {OVERVIEW_SHADOW_ACTOR, SHADOW_PADDING} from '../utils/constants.js';
 import {logDebug} from '../utils/log.js';
 
@@ -122,10 +122,7 @@ const OverviewShadowActorClone = GObject.registerClass(
             const containerScaleFactor =
                 windowContainerBox.get_width() /
                 metaWindow.get_frame_rect().width;
-            const paddings =
-                SHADOW_PADDING *
-                containerScaleFactor *
-                windowScaleFactor(metaWindow);
+            const paddings = SHADOW_PADDING * containerScaleFactor;
 
             // Setup the bounding box of the shadow actor.
             box.set_origin(-paddings, -paddings);

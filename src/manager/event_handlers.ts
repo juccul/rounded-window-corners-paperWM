@@ -306,7 +306,7 @@ function updateEffect(actor: RoundedWindowActor) {
     effect.updateUniforms(cfg, computeBounds(actor, windowContentOffset));
 
     const shadow = windowInfo.shadow;
-    const offsets = computeShadowActorOffset(actor, windowContentOffset);
+    const offsets = computeShadowActorOffset(windowContentOffset);
     const constraints = shadow.get_constraints();
     constraints.forEach((constraint, i) => {
         if (constraint instanceof Clutter.BindConstraint) {
