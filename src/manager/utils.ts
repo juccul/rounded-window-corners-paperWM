@@ -155,11 +155,10 @@ export function computeBounds(
         actor.metaWindow.get_wm_class_instance() === 'kitty'
     ) {
         const [x1, y1, x2, y2] = APP_SHADOWS.kitty;
-        const scale = windowScaleFactor(actor.metaWindow);
-        bounds.x1 += x1 * scale;
-        bounds.y1 += y1 * scale;
-        bounds.x2 -= x2 * scale;
-        bounds.y2 -= y2 * scale;
+        bounds.x1 += x1;
+        bounds.y1 += y1;
+        bounds.x2 -= x2;
+        bounds.y2 -= y2;
     }
 
     return bounds;
