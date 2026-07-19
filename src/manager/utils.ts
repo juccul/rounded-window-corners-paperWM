@@ -41,16 +41,15 @@ export function getRoundedCornersCfg(win: Meta.Window) {
     const globalCfg = getPref('global-rounded-corner-settings');
     const customCfgList = getPref('custom-rounded-corner-settings');
 
-    const wmClass = win.get_wm_class_instance();
     if (
-        wmClass === null ||
-        !customCfgList[wmClass] ||
-        !customCfgList[wmClass].enabled
+        win.wmClass === null ||
+        !customCfgList[win.wmClass] ||
+        !customCfgList[win.wmClass].enabled
     ) {
         return globalCfg;
     }
 
-    return customCfgList[wmClass];
+    return customCfgList[win.wmClass];
 }
 
 // Weird TypeScript magic :)
@@ -95,7 +94,7 @@ export function computeBounds(
     if (
         getPref('tweak-kitty-terminal') &&
         actor.metaWindow.get_client_type() === Meta.WindowClientType.WAYLAND &&
-        actor.metaWindow.get_wm_class_instance() === 'kitty'
+        actor.metaWindow.wmClass === 'kitty'
     ) {
         const [x1, y1, x2, y2] = APP_SHADOWS.kitty;
         bounds.x1 += x1;
@@ -214,13 +213,12 @@ export async function shouldEnableEffect(
     }
 
     // Skip blacklisted applications.
-    const wmClass = win.get_wm_class_instance();
-    if (wmClass === null) {
+    if (win.wmClass === null) {
         logDebug(`Warning: wm_class_instance of ${win}: ${win.title} is null`);
         return false;
     }
     // handles blacklist / whitelist
-    const isException = getPref('blacklist').includes(wmClass);
+    const isException = getPref('blacklist').includes(win.wmClass);
     const enableExceptions = getPref('whitelist');
     if (isException !== enableExceptions) {
         return false;
