@@ -4,6 +4,7 @@ import type St from 'gi://St';
 import type {RoundedCornersEffect} from '../effect/rounded_corners_effect.js';
 import type {RoundedWindowActor} from '../utils/types.js';
 
+import Gio from 'gi://Gio';
 import Meta from 'gi://Meta';
 
 import {boxShadowCss} from '../utils/box_shadow.js';
@@ -272,22 +273,23 @@ export async function shouldEnableEffect(
  * @returns whether the application uses Chromium.
  */
 export async function isChromium(win: Meta.Window & {_isChromium?: boolean}) {
-    logDebug('ischromium', win.wmClass);
     // biome-ignore lint/suspicious/noEqualsToNull: matching both null and undefined is intended.
     if (win._isChromium != null) return win._isChromium;
-    try {
-        // May throw a permission error.
-        const contents = await readFile(`/proc/${win.get_pid()}/maps`);
-        const hasChromiumShm = contents.includes(
-            '/dev/shm/.org.chromium.Chromium',
-        );
-        win._isChromium = hasChromiumShm;
-        logDebug(win.wmClass, 'chromium', hasChromiumShm);
-        return hasChromiumShm;
-    } catch (e) {
-        logError(e);
-        return false;
-    }
+    return await withProcMaps(
+        win,
+        contents => {
+            const hasChromiumShm = contents.includes(
+                '/dev/shm/.org.chromium.Chromium',
+            );
+            win._isChromium = hasChromiumShm;
+            logDebug(win.wmClass, 'chromium', hasChromiumShm);
+            return hasChromiumShm;
+        },
+        () => {
+            win._isChromium = false;
+            return false;
+        },
+    );
 }
 
 type AppType = 'LibAdwaita' | 'LibHandy' | 'Other';
@@ -298,22 +300,51 @@ type AppType = 'LibAdwaita' | 'LibHandy' | 'Other';
  * @param win - The window to get the type of.
  * @returns the type of the application.
  */
-async function getAppType(win: Meta.Window) {
+function getAppType(win: Meta.Window) {
+    return withProcMaps<AppType>(
+        win,
+        contents => {
+            if (contents.includes('libhandy-1.so')) {
+                return 'LibHandy';
+            }
+
+            if (contents.includes('libadwaita-1.so')) {
+                return 'LibAdwaita';
+            }
+
+            return 'Other';
+        },
+        () => 'Other',
+    );
+}
+
+/**
+ * Read /proc/{pid}/maps of a window and process the contents.
+ * Suppresses permission errors and logs the rest.
+ *
+ * @param win - The window to read the maps from.
+ * @param successCb - The function to run on the read contents.
+ * @param errorCb - The value to run in case of an error.
+ * @returns the result of the callback.
+ */
+async function withProcMaps<T>(
+    win: Meta.Window,
+    successCb: (contents: string) => T,
+    errorCb: () => T,
+) {
     try {
-        // May throw a permission error.
         const contents = await readFile(`/proc/${win.get_pid()}/maps`);
-
-        if (contents.includes('libhandy-1.so')) {
-            return 'LibHandy';
-        }
-
-        if (contents.includes('libadwaita-1.so')) {
-            return 'LibAdwaita';
-        }
-
-        return 'Other';
+        return successCb(contents);
     } catch (e) {
-        logError(e);
-        return 'Other';
+        if (
+            e instanceof Gio.IOErrorEnum &&
+            e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.PERMISSION_DENIED)
+        ) {
+            logDebug(`Permission denied reading /proc maps for ${win.wmClass}`);
+        } else {
+            logError(e);
+        }
+
+        return errorCb();
     }
 }
