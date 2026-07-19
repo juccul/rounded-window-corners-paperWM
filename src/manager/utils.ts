@@ -2,7 +2,11 @@
 
 import type St from 'gi://St';
 import type {RoundedCornersEffect} from '../effect/rounded_corners_effect.js';
-import type {RoundedWindowActor} from '../utils/types.js';
+import type {
+    BoxShadow,
+    RoundedCornerSettings,
+    RoundedWindowActor,
+} from '../utils/types.js';
 
 import Gio from 'gi://Gio';
 import Meta from 'gi://Meta';
@@ -155,9 +159,9 @@ export function computeShadowActorOffset([
 export function updateShadowActorStyle(
     win: Meta.Window,
     actor: St.Bin,
-    borderRadius = getPref('global-rounded-corner-settings').borderRadius,
-    shadow = getPref('focused-shadow'),
-    padding = getPref('global-rounded-corner-settings').padding,
+    borderRadius: number,
+    shadow: BoxShadow,
+    padding: RoundedCornerSettings['padding'],
 ) {
     const {left, right, top, bottom} = padding;
 
