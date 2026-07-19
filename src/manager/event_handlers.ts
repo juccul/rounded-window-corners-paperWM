@@ -46,7 +46,7 @@ function withActorLock(
 
 export function onAddEffect(actor: RoundedWindowActor) {
     return withActorLock(actor, async () => {
-        logDebug(`Adding effect to ${actor?.metaWindow.title}`);
+        logDebug(`Adding effect to ${actor?.metaWindow.wmClass}`);
         const win = actor.metaWindow;
 
         // Skip windows that already have the effect to prevent a memory leak
@@ -55,7 +55,7 @@ export function onAddEffect(actor: RoundedWindowActor) {
         const hasEffect = effect && actor.rwcCustomData;
 
         if (!shouldHaveEffect || hasEffect) {
-            logDebug(`Skipping ${win.title}`);
+            logDebug(`Skipping ${win.wmClass}`);
             return;
         }
 

@@ -41,7 +41,7 @@ export async function addShadowInOverview(
         return;
     }
 
-    logDebug(`Adding shadow for ${window.title} in overview`);
+    logDebug(`Adding shadow for ${window.wmClass} in overview`);
 
     // windowContainer has the actual contents of the window preview
     const windowContainer = self.windowContainer;
