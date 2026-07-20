@@ -178,8 +178,20 @@ export async function onUnminimize(actor: RoundedWindowActor) {
     // cut off a part of the window.
     //
     // See https://github.com/flexagoon/rounded-window-corners/issues/124
-    if (await isChromium(actor.metaWindow)) {
-        setTimeout(() => refreshRoundedCorners(actor), 250);
+    if (
+        (await isChromium(actor.metaWindow)) &&
+        actor.rwcCustomData !== undefined
+    ) {
+        const oldTimeout = actor.rwcCustomData.unminimizedTimeoutId;
+        if (oldTimeout !== 0) GLib.source_remove(oldTimeout);
+        actor.rwcCustomData.unminimizedTimeoutId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT,
+            250,
+            () => {
+                refreshRoundedCorners(actor);
+                return GLib.SOURCE_REMOVE;
+            },
+        );
     }
 }
 
