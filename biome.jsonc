@@ -71,6 +71,8 @@
             },
             "correctness": {
                 "noUnknownTypeSelector": "off",
+                // This is a GJS extension, not a Qwik application.
+                "useQwikValidLexicalScope": "off",
                 "noUnresolvedImports": "off",
                 "useImportExtensions": {
                     "level": "error",
@@ -90,6 +92,20 @@
             }
         }
     },
+    "overrides": [
+        {
+            "includes": ["tests/**"],
+            "linter": {
+                "rules": {
+                    "correctness": {
+                        "noNodejsModules": "off",
+                        "useImportExtensions": "off"
+                    },
+                    "style": { "useNamingConvention": "off" }
+                }
+            }
+        }
+    ],
     "formatter": {
         "indentStyle": "space",
         "indentWidth": 4
