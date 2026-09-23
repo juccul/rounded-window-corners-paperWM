@@ -5,10 +5,6 @@
     "author": "flexagoon <code@fxgn.dev>",
     "license": "GPL-3.0-or-later",
     "main": "src/extension.ts",
-    "scripts": {
-        "test": "node --experimental-vm-modules --test tests/*.test.mjs",
-        "check": "tsc --noEmit && biome ci ."
-    },
     "devDependencies": {
         "@biomejs/biome": "^2.5.1",
         "@girs/gnome-shell": "^50.0.3",

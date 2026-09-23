@@ -92,20 +92,6 @@
             }
         }
     },
-    "overrides": [
-        {
-            "includes": ["tests/**"],
-            "linter": {
-                "rules": {
-                    "correctness": {
-                        "noNodejsModules": "off",
-                        "useImportExtensions": "off"
-                    },
-                    "style": { "useNamingConvention": "off" }
-                }
-            }
-        }
-    ],
     "formatter": {
         "indentStyle": "space",
         "indentWidth": 4

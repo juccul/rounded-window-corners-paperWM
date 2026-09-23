@@ -12,19 +12,6 @@
 > [!NOTE]
 > This is the fork of the [original rounded-window-corners extension](https://github.com/yilozt/rounded-window-corners) by @yilozt, which is no longer maintained.
 
-## PaperWM compatibility
-
-Window rounding is applied to Mutter's surface before PaperWM's monitor clipping,
-and custom shadows follow PaperWM's scrolling clones. Surface selection is
-independent of child order, so Blur My Shell's background layer does not replace
-the app surface as the rounding target. Application blur remains available to
-PaperWM's clones during scrolling; Blur My Shell retains control of its blur
-pipeline and settings.
-
-Validated on GNOME Shell 50.5 with PaperWM 50.0.1 and Blur My Shell 72. See
-[tests/README.md](tests/README.md) for regression coverage and the manual test
-matrix, including cases that still need verification.
-
 ## Installation
 
 ### From Gnome Extensions
@@ -86,9 +73,6 @@ on [Weblate](https://hosted.weblate.org/engage/rounded-window-corners-reborn)
 You can also manually edit .po files and submit a PR if you know how to do that.
 
 ## Development
-
-Run `npm ci`, `npm run check`, and `npm test` to type-check, lint, and run the
-regression tests.
 
 Here are the avaliable `just` commands (run `just --list` to see this message):
 
